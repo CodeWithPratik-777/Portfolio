@@ -1,0 +1,33 @@
+*{
+    background-color: black;
+    color: white;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    object-fit: cover;
+    scroll-behavior: smooth;
+    user-select: none;
+    
+}
+
+.custom-cursor {
+    cursor: url("/cursor.png"), default;
+}
+
+.custom-cursor * {
+    cursor: url("/cursor.png"), default !important;
+}
+
+
+::-webkit-scrollbar {
+    width: 0px;
+  }
+
+
+::-webkit-scrollbar-track {
+    background: black;
+}
+
+
+
+
