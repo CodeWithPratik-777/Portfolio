@@ -11,8 +11,10 @@ import "react-toastify/dist/ReactToastify.css";
 export default function Contact() {
   const form = useRef();
   const [isSending, setIsSending] = useState(false);
+  const [messageLength, setMessageLength] = useState(0);
 
   const sanitizeInput = (value) => {
+    if (!value) return "";
     const temp = document.createElement("div");
     temp.textContent = value;
     return temp.innerHTML.trim();
@@ -68,13 +70,23 @@ export default function Contact() {
       return;
     }
 
-    setIsSending(true);
-
     const formData = new FormData(form.current);
     const name = sanitizeInput(formData.get("name"));
     const email = sanitizeInput(formData.get("email"));
     const message = sanitizeInput(formData.get("message"));
 
+    // 1. Validation for Empty Fields
+    if (!name || !email || !message) {
+      toast.error("Please fill in all fields before sending.", {
+        position: "top-right",
+        autoClose: 4000,
+        hideProgressBar: true,
+        theme: "dark",
+      });
+      return;
+    }
+
+    // 2. Format Validation for Email
     if (!isValidEmail(email)) {
       toast.error("Please enter a valid email address.", {
         position: "top-right",
@@ -82,20 +94,32 @@ export default function Contact() {
         hideProgressBar: true,
         theme: "dark",
       });
-      setIsSending(false);
       return;
     }
 
-    if (!name || !message) {
-      toast.error("Please fill in all fields correctly.", {
+    // 3. Size Validation for Message (Max 1000)
+    if (message.length > 1000) {
+      toast.error("Message is too big! Please keep it under 1000 characters.", {
         position: "top-right",
         autoClose: 4000,
         hideProgressBar: true,
         theme: "dark",
       });
-      setIsSending(false);
       return;
     }
+
+    // 4. Size Validation for Name (Max 50)
+    if (name.length > 50) {
+      toast.error("Name must be under 50 characters.", {
+        position: "top-right",
+        autoClose: 4000,
+        hideProgressBar: true,
+        theme: "dark",
+      });
+      return;
+    }
+
+    setIsSending(true);
 
     emailjs
       .send(
@@ -113,9 +137,11 @@ export default function Contact() {
             theme: "dark",
           });
           form.current.reset();
-          updateUserSpamData();
+          setMessageLength(0);
+          updateSpamData();
         },
-        () => {
+        (error) => {
+          console.error("EmailJS Error details:", error);
           toast.error("Error sending email. Please try again later.", {
             position: "top-right",
             autoClose: 4000,
@@ -232,15 +258,19 @@ export default function Contact() {
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 relative">
                 <textarea
                   name="message"
                   rows="7"
                   maxLength={1000}
                   placeholder="YOUR MESSAGE"
                   required
+                  onChange={(e) => setMessageLength(e.target.value.length)}
                   className="w-full p-5 outline-none bg-zinc-950/40 text-white font-semibold text-sm rounded-xl border border-zinc-900 focus:border-zinc-700 focus:ring-1 focus:ring-zinc-800 backdrop-blur-sm resize-none transition duration-300"
                 />
+                <div className="text-right text-xs text-zinc-500 font-mono pr-2 mt-1">
+                  {messageLength} / 1000 characters
+                </div>
               </div>
 
               <div className="pt-2">
